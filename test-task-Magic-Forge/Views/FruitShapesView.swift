@@ -11,9 +11,9 @@ struct FruitShapesView: View {
     let slotSize: CGFloat
 
     private let yOffsets: [String: Double] = [
-        "Raspberry": -0.08,
-        "Banana":     0.15,
-        "Kiwi":      -0.08
+        "Raspberry": 0.15,
+        "Banana":     -0.08,
+        "Kiwi":      0.15
     ]
 
     var body: some View {

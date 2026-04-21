@@ -34,9 +34,11 @@ struct DraggableFruit: View {
                         viewModel.tryMatch(fruitName: item.name, at: value.location)
                         viewModel.dragPosition = nil
                         isDragging = false
-                        viewModel.isDragging = false
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                             offset = .zero
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            viewModel.isDragging = false
                         }
                     }
             )

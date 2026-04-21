@@ -32,7 +32,7 @@ struct ContentView: View {
                     }
                     .frame(width: geo.size.width, height: geo.size.height)
                     .ignoresSafeArea(edges: .bottom)
-                    .zIndex(viewModel.isDragging ? 2 : 0)
+                    .zIndex(viewModel.isDragging ? 5 : 0)
                     .transition(.opacity)
                 }
 
