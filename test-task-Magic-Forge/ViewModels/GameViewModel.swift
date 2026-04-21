@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 class GameViewModel: ObservableObject {
 
@@ -16,6 +17,7 @@ class GameViewModel: ObservableObject {
     @Published var isDragging = false
 
     var slotFrames: [String: CGRect] = [:]
+    private var audioPlayer: AVAudioPlayer?
 
     init() {
         targets = ["Raspberry", "Banana", "Kiwi"]
@@ -26,6 +28,10 @@ class GameViewModel: ObservableObject {
             FruitItem(name: "Apple",      isCorrect: false),
             FruitItem(name: "Banana",     isCorrect: true),
         ]
+        if let asset = NSDataAsset(name: "victory-sound") {
+            audioPlayer = try? AVAudioPlayer(data: asset.data, fileTypeHint: AVFileType.mp3.rawValue)
+            audioPlayer?.prepareToPlay()
+        }
     }
 
     func tryMatch(fruitName: String, at location: CGPoint) {
@@ -61,6 +67,7 @@ class GameViewModel: ObservableObject {
                     self.isLevelComplete = true
                     self.characterState  = .victory
                 }
+                self.playVictorySound()
             }
         } else {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
@@ -71,6 +78,10 @@ class GameViewModel: ObservableObject {
                 }
             }
         }
+    }
+
+    private func playVictorySound() {
+        audioPlayer?.play()
     }
 
     private func handleWrong() {

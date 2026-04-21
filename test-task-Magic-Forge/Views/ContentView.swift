@@ -47,6 +47,12 @@ struct ContentView: View {
                 }
 
                 if viewModel.isLevelComplete {
+                    ConfettiView(screenWidth: geo.size.width, screenHeight: geo.size.height)
+                        .zIndex(5)
+                        .transition(.opacity)
+                }
+
+                if viewModel.isLevelComplete {
                     Color.black
                         .opacity(0.65)
                         .ignoresSafeArea()
