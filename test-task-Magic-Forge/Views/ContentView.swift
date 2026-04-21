@@ -9,6 +9,7 @@ struct ContentView: View {
     @StateObject private var viewModel = GameViewModel()
     @Namespace  private var fruitNamespace
     @State private var isPaused = false
+    @State private var showVictoryButtons = false
 
     var body: some View {
         GeometryReader { geo in
@@ -20,40 +21,30 @@ struct ContentView: View {
                     .resizable()
                     .ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    FruitShapesView(viewModel: viewModel, namespace: fruitNamespace, slotSize: shapeSize)
-                        .padding(.top, geo.size.height * 0.07)
-                    Spacer()
-                    FruitBasketView(viewModel: viewModel, namespace: fruitNamespace, slotSize: fruitSize)
-                        .frame(maxWidth: .infinity)
-                        .padding(.bottom, 24)
-                }
-                .frame(width: geo.size.width, height: geo.size.height)
-                .ignoresSafeArea(edges: .bottom)
-                .zIndex(viewModel.isDragging ? 2 : 0)
-
-                VStack {
-                    HStack {
-                        Button(action: { withAnimation(.easeInOut(duration: 0.3)) { isPaused = true } }) {
-                            Image("pauseButton")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: geo.size.width * 0.14)
-                        }
+                if !viewModel.isLevelComplete {
+                    VStack(spacing: 0) {
+                        FruitShapesView(viewModel: viewModel, namespace: fruitNamespace, slotSize: shapeSize)
+                            .padding(.top, geo.size.height * 0.07)
                         Spacer()
-                        Button(action: {}) {
-                            Image("levelButton")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: geo.size.width * 0.14)
-                        }
+                        FruitBasketView(viewModel: viewModel, namespace: fruitNamespace, slotSize: fruitSize)
+                            .frame(maxWidth: .infinity)
+                            .padding(.bottom, 24)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, -5)
-                    Spacer()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .ignoresSafeArea(edges: .bottom)
+                    .zIndex(viewModel.isDragging ? 2 : 0)
+                    .transition(.opacity)
                 }
-                .frame(width: geo.size.width, height: geo.size.height)
-                .zIndex(3)
+
+                if !viewModel.isLevelComplete {
+                    TopButtonsView(
+                        width: geo.size.width,
+                        onPause: { withAnimation(.easeInOut(duration: 0.3)) { isPaused = true } }
+                    )
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .zIndex(3)
+                    .transition(.opacity)
+                }
 
                 if viewModel.isLevelComplete {
                     Color.black
@@ -62,23 +53,33 @@ struct ContentView: View {
                         .transition(.opacity)
                         .animation(.easeInOut(duration: 0.5), value: viewModel.isLevelComplete)
                         .allowsHitTesting(false)
+                        .zIndex(2)
+                        .onAppear {
+                            withAnimation(.easeInOut(duration: 0.4)) {
+                                showVictoryButtons = true
+                            }
+                        }
+                        .onDisappear { showVictoryButtons = false }
+                }
+
+                if showVictoryButtons {
+                    VictoryButtonsView(
+                        width: geo.size.width,
+                        bottomInset: geo.safeAreaInsets.bottom,
+                        onReload: { showVictoryButtons = false; viewModel.resetLevel() },
+                        onPlay:   { showVictoryButtons = false; viewModel.resetLevel() }
+                    )
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(3)
                 }
 
                 if isPaused {
-                    Color.black
-                        .opacity(0.65)
-                        .ignoresSafeArea()
-                        .transition(.opacity)
-                        .zIndex(4)
-
-                    Button(action: { withAnimation(.easeInOut(duration: 0.3)) { isPaused = false } }) {
-                        Image("playButton")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: geo.size.width * 0.25)
-                    }
-                    .transition(.scale.combined(with: .opacity))
-                    .zIndex(5)
+                    PauseOverlayView(
+                        buttonSize: geo.size.width * 0.25,
+                        onResume: { isPaused = false }
+                    )
+                    .zIndex(4)
                 }
 
                 CharacterView(viewModel: viewModel)
@@ -88,7 +89,7 @@ struct ContentView: View {
                     .scaleEffect(viewModel.isLevelComplete ? 1.2 : 1.0)
                     .animation(.spring(response: 0.5, dampingFraction: 0.7), value: viewModel.isLevelComplete)
                     .allowsHitTesting(false)
-                    .zIndex(1)
+                    .zIndex(isPaused ? 0 : 4)
             }
             .coordinateSpace(name: "gameArea")
         }
