@@ -18,6 +18,17 @@ struct CharacterView: View {
     @State private var pupilOffset: CGSize = .zero
     @State private var idleOffset: CGSize = .zero
 
+    private var bodyImageName: String {
+        switch viewModel.characterState {
+        case .idle:    return "Test_Kitten_Bottom"
+        case .sad:     return "Test_Kitten_Sad"
+        case .happy:   return "Test_Kitten_Happy"
+        case .victory: return "Test_Kitten_Victory"
+        }
+    }
+
+    @State private var showEyes: Bool = true
+
     var body: some View {
         GeometryReader { geo in
             let renderedH = min(geo.size.height, geo.size.width / bodyAspect)
@@ -30,31 +41,40 @@ struct CharacterView: View {
             let eyeY = bodyMinY + renderedH * eyeYRatio - geo.size.height * 0.002
 
             ZStack {
-                Image("Test_Kitten_Bottom")
+                Image(bodyImageName)
                     .resizable()
                     .scaledToFit()
                     .frame(width: geo.size.width, height: geo.size.height)
                     .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                    .id(bodyImageName)
+                    .transition(.opacity)
 
-                Image("Test_Kitten_Eyeballs")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: eyeW, height: eyeH)
-                    .position(x: eyeX, y: eyeY)
+                if showEyes {
+                    Image("Test_Kitten_Eyeballs")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: eyeW, height: eyeH)
+                        .position(x: eyeX, y: eyeY)
+                        .transition(.opacity)
 
-                Image("Test_Kitten_Pupils")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: eyeW, height: eyeH)
-                    .offset(viewModel.dragPosition != nil ? pupilOffset : idleOffset)
-                    .position(x: eyeX, y: eyeY)
+                    Image("Test_Kitten_Pupils")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: eyeW, height: eyeH)
+                        .offset(viewModel.dragPosition != nil ? pupilOffset : idleOffset)
+                        .position(x: eyeX, y: eyeY)
+                        .transition(.opacity)
 
-                Image("Test_Kitten_Eyelids")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: eyeW, height: eyeH)
-                    .position(x: eyeX, y: eyeY)
+                    Image("Test_Kitten_Eyelids")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: eyeW, height: eyeH)
+                        .position(x: eyeX, y: eyeY)
+                        .transition(.opacity)
+                }
             }
+            .animation(.easeInOut(duration: 0.4), value: bodyImageName)
+            .animation(.easeInOut(duration: 0.4), value: showEyes)
         }
         .background(
             GeometryReader { geo in
@@ -66,6 +86,20 @@ struct CharacterView: View {
         )
         .onPreferenceChange(CharacterFrameKey.self) { characterFrame = $0 }
         .onChange(of: viewModel.dragPosition) { _, pos in updatePupils(dragPos: pos) }
+        .onChange(of: viewModel.characterState) { _, state in
+            if state == .idle {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showEyes = true
+                }
+            } else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.23) {
+                    guard viewModel.characterState != .idle else { return }
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        showEyes = false
+                    }
+                }
+            }
+        }
         .onAppear { startIdleAnimation() }
     }
 

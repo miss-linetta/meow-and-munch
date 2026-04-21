@@ -26,6 +26,7 @@ struct DraggableFruit: View {
                 DragGesture(coordinateSpace: .named("gameArea"))
                     .onChanged { value in
                         isDragging = true
+                        viewModel.isDragging = true
                         offset = value.translation
                         viewModel.dragPosition = value.location
                     }
@@ -33,6 +34,7 @@ struct DraggableFruit: View {
                         viewModel.tryMatch(fruitName: item.name, at: value.location)
                         viewModel.dragPosition = nil
                         isDragging = false
+                        viewModel.isDragging = false
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                             offset = .zero
                         }

@@ -12,7 +12,8 @@ class GameViewModel: ObservableObject {
     @Published var guessedFruits: Set<String> = []
     @Published var characterState: CharacterState = .idle
     @Published var isLevelComplete = false
-    @Published var dragPosition: CGPoint? = nil
+    @Published var dragPosition: CGPoint?
+    @Published var isDragging = false
 
     var slotFrames: [String: CGRect] = [:]
 
@@ -53,7 +54,7 @@ class GameViewModel: ObservableObject {
             guessedFruits.insert(name)
             characterState = .happy
         }
-        let allGuessed = targets.allSatisfy { guessedFruits.contains($0) || $0 == name }
+        let allGuessed = targets.allSatisfy { guessedFruits.contains($0) }
         if allGuessed {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                 withAnimation {
@@ -61,10 +62,27 @@ class GameViewModel: ObservableObject {
                     self.characterState  = .victory
                 }
             }
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                if self.characterState == .happy {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        self.characterState = .idle
+                    }
+                }
+            }
         }
     }
 
     private func handleWrong() {
-        characterState = .sad
+        withAnimation(.easeInOut(duration: 0.4)) {
+            characterState = .sad
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            if self.characterState == .sad {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    self.characterState = .idle
+                }
+            }
+        }
     }
 }

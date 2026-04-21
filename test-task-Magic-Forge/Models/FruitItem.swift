@@ -7,8 +7,8 @@ import Foundation
 
 struct FruitItem: Identifiable {
     let id = UUID()
-    let name: String      // base name: "Raspberry", "Banana", etc.
-    let isCorrect: Bool   // whether this fruit matches one of the targets
+    let name: String
+    let isCorrect: Bool
 
     var circleName: String  { "\(name)_circle" }
     var shapeName: String   { "\(name)_shape" }
