@@ -7,19 +7,14 @@ import SwiftUI
 
 class GameViewModel: ObservableObject {
 
-    // MARK: - Published state
-
     @Published var slots: [FruitItem]
-    @Published var targets: [String]            // base names of target shapes
+    @Published var targets: [String]
     @Published var guessedFruits: Set<String> = []
     @Published var characterState: CharacterState = .idle
     @Published var isLevelComplete = false
+    @Published var dragPosition: CGPoint? = nil
 
-    // MARK: - Internal
-
-    var slotFrames: [String: CGRect] = [:]      // target base name → frame in gameArea
-
-    // MARK: - Init
+    var slotFrames: [String: CGRect] = [:]
 
     init() {
         targets = ["Raspberry", "Banana", "Kiwi"]
@@ -31,8 +26,6 @@ class GameViewModel: ObservableObject {
             FruitItem(name: "Banana",     isCorrect: true),
         ]
     }
-
-    // MARK: - Game logic
 
     func tryMatch(fruitName: String, at location: CGPoint) {
         for (targetName, frame) in slotFrames {
@@ -49,13 +42,11 @@ class GameViewModel: ObservableObject {
 
     func resetLevel() {
         withAnimation {
-            guessedFruits    = []
-            characterState   = .idle
-            isLevelComplete  = false
+            guessedFruits   = []
+            characterState  = .idle
+            isLevelComplete = false
         }
     }
-
-    // MARK: - Private
 
     private func handleCorrect(_ name: String) {
         withAnimation(.easeInOut(duration: 0.5)) {
@@ -65,8 +56,10 @@ class GameViewModel: ObservableObject {
         let allGuessed = targets.allSatisfy { guessedFruits.contains($0) || $0 == name }
         if allGuessed {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-                withAnimation { self.isLevelComplete = true
-                               self.characterState   = .victory }
+                withAnimation {
+                    self.isLevelComplete = true
+                    self.characterState  = .victory
+                }
             }
         }
     }
